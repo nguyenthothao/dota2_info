@@ -12,16 +12,16 @@ class MyApp extends StatelessWidget {
           title: Text('Dota2 match'),
         ),
         body: Container(
-                child: Center(
-                  child: Column(
-                    children: <Widget>[
-                      Text("Name :"),
-                      Text("password :"),
-                    ],
-                  ),
-                ),
-          ),
-        ),
-      );
+            child: Column(
+          children: <Widget>[
+            Text("LOGIN",style: TextStyle(fontSize: 20),),
+            TextFormField(
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(labelText: 'Email '),
+            )
+          ],
+        ),),
+      ),
+    );
   }
 }
