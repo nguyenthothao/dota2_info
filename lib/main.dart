@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/screen/home/components/build_drawer.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import './enum/attackType.dart' as attactType;
+import './enum/attackType.dart';
+import 'package:toggle_switch/toggle_switch.dart';
 
 void main() => runApp(MyApp());
 
@@ -16,6 +18,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Map<String, dynamic> heroData;
   Iterable<String> ids;
+  int stt = 0;
 
   Future<String> getData() async {
     var response = await http.get(
@@ -28,6 +31,27 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  toggleSwitchType(int index) {
+    setState(() {
+      stt = index;
+    });
+  }
+
+  listViewType(int n) {
+    switch (n) {
+      case 0:
+        return ListHeroes(heroData);
+        break;
+      case 1:
+        return ListHeroesAttackType(
+            heroData, AttackTypeName[AttackType.Melee]);
+        break;
+      default:
+        return ListHeroesAttackType(
+            heroData, AttackTypeName[AttackType.Ranged]);
+    }
+  }
+
   @override
   void initState() {
     this.getData();
@@ -38,32 +62,46 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Welcome to Flutter',
       home: Scaffold(
+        drawer: buildDrawer(),
         appBar: AppBar(
           title: Center(
-            child: Text("Dota 2 Hero", style: TextStyle(fontSize: 40)),
+            child: Text("MeePaw", style: TextStyle(fontSize: 40)),
           ),
         ),
         body:
-            // ListHeroesAttackType(heroData,attactType.attackTpyeStr(attactType.AttackType.Ranged))
+            // ListHeroesAttackType(heroData,AttackTypeName[AttackType.Ranged])
             Column(
           children: [
+            // Container(
+            //     color: Colors.yellow,
+            //     height: 50,q
+            //     child: Center(
+            //       child: Row(
+            //         mainAxisAlignment: MainAxisAlignment.spaceAround,
+            //         children: [
+            //           TextType("All"),
+            //           TextType("Melee"),
+            //           TextType("Ranged")
+            //         ],
+            //       ),
+            //     )),
             Container(
-                color: Colors.yellow,
-                height: 50,
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      TextType("All"),
-                      TextType("Melee"),
-                      TextType("Ranged")
-                    ],
-                  ),
-                )),
-            Container(
-                height: 620, color: Colors.brown, child: ListHeroes(heroData)
-                // ListHeroesAttackType(heroData,attactType.attackTpyeStr(attactType.AttackType.Ranged)),
-                )
+                child: ToggleSwitch(
+                    minHeight: 50,
+                    minWidth: 100,
+                    activeBgColor: Colors.lightGreen,
+                    inactiveBgColor: Colors.red,
+                    inactiveFgColor: Colors.white,
+                    initialLabelIndex: 1,
+                    fontSize: 20,
+                    labels: ['All', 'Melee', 'Ranged'],
+                    onToggle: (index) {
+                      toggleSwitchType(index);
+                      print("So thu tu: $index");
+                    })),
+
+            Container(height: 628, child: listViewType(stt))
+            // ListHeroesAttackType(heroData,AttackTypeName[AttackType.Ranged]),
           ],
         ),
       ),
@@ -81,11 +119,10 @@ class ListHeroes extends StatelessWidget {
     Iterable<String> ids = heroData.keys;
 
     return ListView.builder(
+      padding: EdgeInsets.zero,
       itemCount: heroData == null ? 0 : heroData.length,
       itemBuilder: (BuildContext context, int index) {
         return new Card(
-          borderOnForeground: true,
-          color: Colors.black,
           child: new Image.network(
             "https://cdn.dota2.com" + heroData[ids.elementAt(index)]["img"],
             width: 30,

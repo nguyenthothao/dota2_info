@@ -1,7 +1,11 @@
-enum AttackType { Melee, Ranged }
-String attackTpyeStr(AttackType type) {
-  if (type == AttackType.Melee) {
-    return "Melee";
-  }
-  return "Ranged";
+enum AttackType {
+  Melee,
+  Ranged
 }
+const Map<AttackType, String> AttackTypeName = {
+  AttackType.Melee:"Melee",
+  AttackType.Ranged:"Ranged"
+};
+
+
+
