@@ -1,4 +1,4 @@
-# flutter_app
+# dota2_info
 
 A new Flutter application.
 

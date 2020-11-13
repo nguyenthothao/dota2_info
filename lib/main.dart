@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/screen/home/components/build_drawer.dart';
+import 'package:dota2_info/screen/home/components/build_drawer.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';

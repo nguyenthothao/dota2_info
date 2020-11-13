@@ -1,4 +1,4 @@
-package com.example.flutter_app
+package com.example.dota2_info
 
 import io.flutter.embedding.android.FlutterActivity
 
