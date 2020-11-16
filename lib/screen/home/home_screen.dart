@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'components/build_drawer.dart';
 import 'package:dota2_info/enum/attackType.dart';
@@ -11,62 +13,6 @@ class HomeScreen extends StatefulWidget {
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
-}
-
-class ListHeroes extends StatelessWidget {
-  final Map<String, dynamic> heroData;
-
-  const ListHeroes(this.heroData);
-
-  @override
-  Widget build(BuildContext context) {
-    Iterable<String> ids = heroData.keys;
-
-    return ListView.builder(
-      padding: EdgeInsets.zero,
-      itemCount: heroData == null ? 0 : heroData.length,
-      itemBuilder: (BuildContext context, int index) {
-        return new Card(
-          child: new Image.network(
-            "https://cdn.dota2.com" + heroData[ids.elementAt(index)]["img"],
-            width: 30,
-            height: 100,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class ListHeroesAttackType extends StatelessWidget {
-  final Map<String, dynamic> heroData;
-  final String attackType;
-
-  const ListHeroesAttackType(this.heroData, this.attackType);
-
-  @override
-  Widget build(BuildContext context) {
-    Iterable<String> ids = heroData.keys;
-    List<String> melee = [];
-
-    for (int i = 0; i < heroData.length; i++) {
-      if (heroData[ids.elementAt(i)]["attack_type"] == "$attackType") {
-        melee.add(heroData[ids.elementAt(i)]["img"]);
-      }
-    }
-    return ListView.builder(
-      itemCount: melee == null ? 0 : melee.length,
-      itemBuilder: (BuildContext context, int index) {
-        return new Card(
-          child: new Image.network(
-            "https://cdn.dota2.com" + melee[index],
-            width: 30,
-            height: 100,
-          ),
-        );
-      },
-    );
-  }
 }
 
 class TextType extends StatelessWidget {
@@ -93,11 +39,87 @@ class _HomeScreenState extends State<HomeScreen> {
     var response = await http.get(
         Uri.encodeFull("https://api.opendota.com/api/constants/heroes"),
         headers: {"Accept": "application/json"});
+    heroData = json.decode(response.body);
+    ids = heroData.keys;
+    return "Success!";
+  }
 
-    this.setState(() {
-      heroData = json.decode(response.body);
-      ids = heroData.keys;
-    });
+  @override
+  initState() {
+    super.initState();
+  }
+
+  Widget _listHero() {
+    return FutureBuilder(
+      future: getData(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (heroData == null) {
+          return Container(child: Center(child: Text("Loading..")));
+        } else {
+          return ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: heroData == null ? 0 : heroData.length,
+            itemBuilder: (BuildContext context, int index) {
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage("https://cdn.dota2.com" +
+                      heroData[ids.elementAt(index)]["img"]),
+                ),
+                title: Text(
+                  heroData[ids.elementAt(index)]["localized_name"],
+                ),
+                focusColor: Colors.green,
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      new MaterialPageRoute(
+                          builder: (context) => DetailPage(
+                              heroData[ids.elementAt(index)]
+                                  ["localized_name"])));
+                },
+                // child: new Image.network(
+                //   "https://cdn.dota2.com" +
+                //       heroData[ids.elementAt(index)]["img"],
+                //   width: 30,
+                //   height: 100,
+                // ),
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
+  Widget _listHeroAttackTyle(String att) {
+    List<String> melee = [];
+    for (int i = 0; i < heroData.length; i++) {
+      if (heroData[ids.elementAt(i)]["attack_type"] == att) {
+        melee.add(heroData[ids.elementAt(i)]["img"]);
+      }
+    }
+    return FutureBuilder(
+      future: getData(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (melee == null) {
+          return Container(child: Center(child: Text("Loading..")));
+        } else {
+          return ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: melee == null ? 0 : melee.length,
+            itemBuilder: (BuildContext context, int index) {
+              return new Card(
+                child: new Image.network(
+                  "https://cdn.dota2.com" + melee[index],
+                  width: 30,
+                  height: 100,
+                ),
+              );
+            },
+          );
+        }
+      },
+    );
   }
 
   toggleSwitchType(int index) {
@@ -109,14 +131,13 @@ class _HomeScreenState extends State<HomeScreen> {
   listViewType(int n) {
     switch (n) {
       case 0:
-        return ListHeroes(heroData);
+        return _listHero();
         break;
       case 1:
-        return ListHeroesAttackType(heroData, AttackTypeName[AttackType.Melee]);
+        return _listHeroAttackTyle(AttackTypeName[AttackType.Melee]);
         break;
       default:
-        return ListHeroesAttackType(
-            heroData, AttackTypeName[AttackType.Ranged]);
+        return _listHeroAttackTyle(AttackTypeName[AttackType.Ranged]);
     }
   }
 
@@ -138,14 +159,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   activeBgColor: Colors.lightGreen,
                   inactiveBgColor: Colors.red,
                   inactiveFgColor: Colors.white,
-                  initialLabelIndex: 1,
+                  initialLabelIndex: 0,
                   fontSize: 20,
                   labels: ['All', 'Melee', 'Ranged'],
                   onToggle: (index) {
                     toggleSwitchType(index);
+                    print(stt);
                   })),
           Container(height: 628, child: listViewType(stt))
         ],
+      ),
+    );
+  }
+}
+
+class DetailPage extends StatelessWidget {
+  final String name;
+
+  DetailPage(this.name);
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(name),
       ),
     );
   }
