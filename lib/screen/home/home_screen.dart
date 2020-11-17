@@ -50,6 +50,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _listHero() {
+    List<String> melee = [];
+    for (int i = 0; i < heroData.length; i++) {
+      melee.add(heroData[ids.elementAt(i)]["primary_attr"]);
+    }
     return FutureBuilder(
       future: getData(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -61,7 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: heroData == null ? 0 : heroData.length,
             itemBuilder: (BuildContext context, int index) {
               return ListTile(
+                subtitle: Text(melee[index]),
                 leading: CircleAvatar(
+                  radius: 50,
                   backgroundImage: NetworkImage("https://cdn.dota2.com" +
                       heroData[ids.elementAt(index)]["img"]),
                 ),
@@ -77,12 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               heroData[ids.elementAt(index)]
                                   ["localized_name"])));
                 },
-                // child: new Image.network(
-                //   "https://cdn.dota2.com" +
-                //       heroData[ids.elementAt(index)]["img"],
-                //   width: 30,
-                //   height: 100,
-                // ),
               );
             },
           );
@@ -122,6 +122,48 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _listHeroUseGrid(String att) {
+    List<String> atts = [];
+    List<String> heroNames = [];
+    for (int i = 0; i < heroData.length; i++) {
+      if (heroData[ids.elementAt(i)]["attack_type"] == att) {
+        atts.add(heroData[ids.elementAt(i)]["img"]);
+        heroNames.add(heroData[ids.elementAt(i)]["localized_name"]);
+      }
+    }
+    return FutureBuilder(
+      future: getData(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (atts == null) {
+          return Container(child: Center(child: Text("Loading..")));
+        } else {
+          return GridView.count(
+              crossAxisCount: 3,
+              crossAxisSpacing: 5,
+              children: List.generate(atts.length, (index) {
+                return Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(50),
+                      child: Image.network(
+                        "https://cdn.dota2.com" + atts[index],
+                        height: 80,
+                      ),
+                    ),
+                    Text(
+                      heroNames[index],
+                      style: TextStyle(
+                          color: Colors.blue, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                );
+              }));
+        }
+      },
+    );
+  }
+
   toggleSwitchType(int index) {
     setState(() {
       stt = index;
@@ -137,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return _listHeroAttackTyle(AttackTypeName[AttackType.Melee]);
         break;
       default:
-        return _listHeroAttackTyle(AttackTypeName[AttackType.Ranged]);
+        return _listHeroUseGrid(AttackTypeName[AttackType.Ranged]);
     }
   }
 
@@ -159,12 +201,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   activeBgColor: Colors.lightGreen,
                   inactiveBgColor: Colors.red,
                   inactiveFgColor: Colors.white,
-                  initialLabelIndex: 0,
                   fontSize: 20,
                   labels: ['All', 'Melee', 'Ranged'],
                   onToggle: (index) {
                     toggleSwitchType(index);
-                    print(stt);
                   })),
           Container(height: 628, child: listViewType(stt))
         ],
@@ -183,6 +223,8 @@ class DetailPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(name),
       ),
+      backgroundColor: Colors.yellow,
+      bottomSheet: Text(name,textAlign: TextAlign.center,),
     );
   }
 }
