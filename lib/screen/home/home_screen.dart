@@ -31,39 +31,48 @@ class TextType extends StatelessWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic> heroData;
   Iterable<String> ids;
-  int stt = 1;
-  List<String> listHero = [];
-  List<String> ranged = [];
-  List<String> heroNamesRanged = [];
-  List<String> heroNamesMelee = [];
-  List<String> melee = [];
-  List<String> iconHeros = [];
+  int stt = 0;
+  List<HeroDetail> rangeds = [];
+  List<HeroDetail> melees = [];
 
-  Future<String> getData() async {
+  Future<List<HeroDetail>> getData() async {
     var response = await http.get(
         Uri.encodeFull("https://api.opendota.com/api/constants/heroes"),
         headers: {"Accept": "application/json"});
     heroData = json.decode(response.body);
     ids = heroData.keys;
+    // for (int i = 0; i < heroData.length; i++) {
+    //   listHero.add(heroData[ids.elementAt(i)]["primary_attr"]);
+    //   iconHeros.add(heroData[ids.elementAt(i)]["icon"]);
+    // }
+    // for (int i = 0; i < heroData.length; i++) {
+    //   if (heroData[ids.elementAt(i)]["attack_type"] ==
+    //       AttackTypeName[AttackType.Ranged]) {
+    //     ranged.add(heroData[ids.elementAt(i)]["img"]);
+    //     heroNamesRanged.add(heroData[ids.elementAt(i)]["localized_name"]);
+    //   }
+    // }
+    // for (int i = 0; i < heroData.length; i++) {
+    //   if (heroData[ids.elementAt(i)]["attack_type"] ==
+    //       AttackTypeName[AttackType.Melee]) {
+    //     melee.add(heroData[ids.elementAt(i)]["img"]);
+    //     heroNamesMelee.add(heroData[ids.elementAt(i)]["localized_name"]);
+    //   }
+    // }
+    List<HeroDetail> heroDetails = [];
     for (int i = 0; i < heroData.length; i++) {
-      listHero.add(heroData[ids.elementAt(i)]["primary_attr"]);
-      iconHeros.add(heroData[ids.elementAt(i)]["icon"]);
+      HeroDetail hero = new HeroDetail(
+          heroData[ids.elementAt(i)]["id"],
+          heroData[ids.elementAt(i)]["name"],
+          heroData[ids.elementAt(i)]["localized_name"],
+          heroData[ids.elementAt(i)]["primary_attr"],
+          heroData[ids.elementAt(i)]["attack_type"],
+          heroData[ids.elementAt(i)]["img"],
+          heroData[ids.elementAt(i)]["icon"],
+          heroData[ids.elementAt(i)]["legs"]);
+      heroDetails.add(hero);
     }
-    for (int i = 0; i < heroData.length; i++) {
-      if (heroData[ids.elementAt(i)]["attack_type"] ==
-          AttackTypeName[AttackType.Ranged]) {
-        ranged.add(heroData[ids.elementAt(i)]["img"]);
-        heroNamesRanged.add(heroData[ids.elementAt(i)]["localized_name"]);
-      }
-    }
-    for (int i = 0; i < heroData.length; i++) {
-      if (heroData[ids.elementAt(i)]["attack_type"] ==
-          AttackTypeName[AttackType.Melee]) {
-        melee.add(heroData[ids.elementAt(i)]["img"]);
-        heroNamesMelee.add(heroData[ids.elementAt(i)]["localized_name"]);
-      }
-    }
-    return "Hero Data";
+    return heroDetails;
   }
 
   // List<String> listHeroess(Map<String, dynamic> data) {
@@ -83,32 +92,31 @@ class _HomeScreenState extends State<HomeScreen> {
     return FutureBuilder(
       future: getData(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (heroData == null) {
+        if (snapshot.data == null) {
           return Container(child: Center(child: Text("Loading..")));
         } else {
           return ListView.builder(
             padding: EdgeInsets.zero,
-            itemCount: heroData == null ? 0 : heroData.length,
+            itemCount: snapshot.data.length,
             itemBuilder: (BuildContext context, int index) {
               return ListTile(
-                subtitle: Text(heroData[ids.elementAt(index)]["primary_attr"]),
+                subtitle: Text(snapshot.data[index].primaryAttr),
                 leading: CircleAvatar(
                   radius: 25,
                   backgroundColor: Colors.white,
-                  backgroundImage: NetworkImage("https://cdn.dota2.com" +
-                      heroData[ids.elementAt(index)]["icon"]),
+                  backgroundImage: NetworkImage(
+                      "https://cdn.dota2.com" + snapshot.data[index].icon),
                 ),
                 title: Text(
-                  heroData[ids.elementAt(index)]["localized_name"],
+                  snapshot.data[index].localizedName,
                 ),
                 focusColor: Colors.green,
                 onTap: () {
                   Navigator.push(
                       context,
                       new MaterialPageRoute(
-                          builder: (context) => DetailPage(
-                              heroData[ids.elementAt(index)]
-                                  ["localized_name"])));
+                          builder: (context) =>
+                              DetailPage(snapshot.data[index])));
                 },
               );
             },
@@ -122,18 +130,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return FutureBuilder(
       future: getData(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (heroData == null) {
+        if (snapshot.data == null) {
           return Container(child: Center(child: Text("Loading..")));
         } else {
+          for (int i = 0; i < snapshot.data.length; i++) {
+            if (snapshot.data[i].attackType ==
+                AttackTypeName[AttackType.Melee]) {
+              melees.add(snapshot.data[i]);
+            }
+          }
           return ListView.builder(
             padding: EdgeInsets.zero,
-            itemCount: melee == null ? 0 : melee.length,
+            itemCount: melees == null ? 0 : melees.length,
             itemBuilder: (BuildContext context, int index) {
               return InkWell(
                 child: Padding(
                   padding: EdgeInsets.all(20),
                   child: Image.network(
-                    "https://cdn.dota2.com" + melee[index],
+                    "https://cdn.dota2.com" + melees[index].img,
                     fit: BoxFit.fitHeight,
                     height: 100,
                   ),
@@ -142,8 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                       context,
                       new MaterialPageRoute(
-                          builder: (context) => DetailPage(
-                              heroNamesMelee[index])));
+                          builder: (context) => DetailPage(melees[index])));
                 },
               );
             },
@@ -160,16 +173,22 @@ class _HomeScreenState extends State<HomeScreen> {
         if (heroData == null) {
           return Container(child: Center(child: Text("Loading..")));
         } else {
+          for (int i = 0; i < snapshot.data.length; i++) {
+            if (snapshot.data[i].attackType ==
+                AttackTypeName[AttackType.Ranged]) {
+              rangeds.add(snapshot.data[i]);
+            }
+          }
           return GridView.count(
               crossAxisCount: 3,
               crossAxisSpacing: 15,
-              children: List.generate(ranged.length, (index) {
+              children: List.generate(62, (index) {
                 return Column(
                   children: [
                     InkWell(
                       borderRadius: BorderRadius.all(Radius.circular(20)),
                       child: Image.network(
-                        "https://cdn.dota2.com" + ranged[index],
+                        "https://cdn.dota2.com" + rangeds[index].img,
                         height: 80,
                         fit: BoxFit.fitHeight,
                       ),
@@ -178,11 +197,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             new MaterialPageRoute(
                                 builder: (context) =>
-                                    DetailPage(heroNamesRanged[index])));
+                                    DetailPage(snapshot.data[index])));
                       },
                     ),
                     Text(
-                      heroNamesRanged[index],
+                     snapshot.data[index].name,
                       style: TextStyle(
                           color: Colors.blue, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
@@ -253,22 +272,35 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class DetailPage extends StatelessWidget {
-  final String name;
+  final HeroDetail heroDetail;
 
-  DetailPage(this.name);
+  DetailPage(this.heroDetail);
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(name),
+          title: Text(heroDetail.name),
         ),
         backgroundColor: Colors.yellow,
         bottomSheet: Text(
-          name,
-          textAlign: TextAlign.center,
+          heroDetail.name,
         ),
       ),
     );
   }
+}
+
+class HeroDetail {
+  final int id;
+  final String name;
+  final String localizedName;
+  final String primaryAttr;
+  final String attackType;
+  final String img;
+  final String icon;
+  final int legs;
+
+  HeroDetail(this.id, this.name, this.localizedName, this.primaryAttr,
+      this.attackType, this.img, this.icon, this.legs);
 }
